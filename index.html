@@ -1,152 +1,409 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vorenth Pitch</title>
-    <!-- Tailwind CSS via CDN for rapid styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Smooth out the JS animations */
-        .anim-element {
-            will-change: transform, opacity, background-color;
-        }
-        /* Custom font import for that premium feel */
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&display=swap');
-        .font-serif { font-family: 'Playfair Display', serif; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VORENTH | The Autonomous Engine</title>
+<!-- Lenis for buttery smooth scroll inertia -->
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow-x: hidden; cursor: default; }
+
+  /* The scroll track height */
+  #track { height: 800vh; position: relative; }
+
+  /* The camera viewport that sticks to the screen */
+  #stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+
+  canvas#particles {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.8s;
+  }
+
+  #noise {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* Z-Index Hierarchy */
+  #l-question { z-index: 3; mix-blend-mode: multiply; }
+  #l-title { z-index: 10; }
+  #l-acronym { z-index: 12; }
+  #l-bubble { z-index: 14; }
+  #l-anchor { z-index: 15; }
+  #l-problem { z-index: 12; }
+
+  /* Massive Background Question Mark */
+  #massive-q {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 130vw; /* Scales with screen width */
+    color: rgba(0, 0, 0, 0.04);
+    font-weight: 600;
+    line-height: 0.8;
+    transform-origin: center;
+    filter: blur(8px);
+    user-select: none;
+  }
+
+  /* Main VORENTH Title */
+  #vorenth-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 18vw, 18rem);
+    letter-spacing: 0.04em;
+    color: #fff;
+    line-height: 1;
+    position: relative;
+    transition: color 0.4s ease;
+  }
+  #vorenth-main .letter {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  /* Scanline effect during the transition */
+  #scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%);
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Acronym Typography */
+  .acronym-wrap { text-align: center; max-width: 80vw; padding: 0 2rem; }
+  .acronym-word {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.7rem, 2.5vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0 0.25em;
+    will-change: transform, opacity;
+  }
+  .acronym-highlight {
+    color: #000;
+    border-bottom: 3px solid rgba(0,0,0,0.8);
+  }
+
+  /* Glassmorphic Bubble */
+  #bubble-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(50px) saturate(200%);
+    -webkit-backdrop-filter: blur(50px) saturate(200%);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 30px;
+    padding: clamp(2rem, 5vw, 4rem) clamp(2rem, 6vw, 5rem);
+    max-width: 700px;
+    width: 90vw;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+  /* Inside Bubble Glows */
+  #bubble-card::before {
+    content: ''; position: absolute; top: -50%; right: -20%; width: 60%; height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  }
+  .bubble-label {
+    font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 0.4em;
+    text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 1.5rem; display: block;
+  }
+  .bubble-meaning {
+    font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 4.5vw, 3.5rem);
+    font-style: italic; font-weight: 300; color: #fff; line-height: 1.3; min-height: 3.5em;
+  }
+
+  /* The Sticky Anchor */
+  #anchor-text {
+    font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300;
+    font-size: clamp(2rem, 5vw, 4.5rem); text-align: center; line-height: 1.4; padding: 0 2rem;
+  }
+
+  /* Problem Pivot */
+  .problem-inner { text-align: center; max-width: 80vw; }
+  #problem-line1 {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 10vw, 10rem);
+    color: #fff; line-height: 0.9; letter-spacing: 0.02em; display: block;
+  }
+  #problem-line2 {
+    font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300;
+    font-size: clamp(1.5rem, 4vw, 3.5rem); color: rgba(255,255,255,0.4); display: block; margin-top: 0.5em;
+  }
+
+  /* Scroll Hint UX */
+  #scroll-hint {
+    position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 50; transition: opacity 0.5s;
+  }
+  #scroll-hint span { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+  .scroll-arrow { width: 1px; height: 40px; background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scaleY(0.8); } 50% { opacity: 1; transform: scaleY(1.2); } }
+</style>
 </head>
-<body class="bg-black m-0 p-0 overflow-x-hidden">
+<body>
+<div id="track">
+  <div id="stage">
+    <canvas id="particles"></canvas>
+    <div id="noise"></div>
+    <div id="scan-line"></div>
 
-    <!-- The 700vh container gives us the "track" to scroll down -->
-    <div style="height: 700vh; position: relative;">
-        
-        <!-- The Sticky Window: Stays locked to the screen while we scroll -->
-        <div id="sticky-container" class="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden transition-colors duration-[50ms] bg-black">
-            
-            <!-- Scene 1 & 2: Background Question Mark -->
-            <div id="question-mark" class="anim-element absolute text-[40rem] font-black text-black blur-md z-0 select-none opacity-0 scale-50">
-                ?
-            </div>
-            
-            <!-- Scene 1 & 2: VORENTH -->
-            <h1 id="vorenth-text" class="anim-element absolute text-7xl md:text-9xl font-black tracking-tighter uppercase z-10 text-white">
-                VORENTH
-            </h1>
-
-            <!-- Scene 3: The Acronym -->
-            <div id="acronym" class="anim-element absolute max-w-6xl px-6 text-center z-20 opacity-0 translate-y-12">
-                <h2 class="text-4xl md:text-6xl font-bold tracking-tight text-black leading-tight">
-                    VANGUARD ORCHESTRATED RESOURCE ENGINE FOR NETWORK TRACKING AND HARMONY
-                </h2>
-            </div>
-
-            <!-- Scene 4: The Glass Bubble -->
-            <div id="bubble" class="anim-element absolute z-20 flex flex-col items-center justify-center w-full max-w-3xl px-6 opacity-0 translate-y-10">
-                <div class="w-full relative rounded-3xl p-10 md:p-16 backdrop-blur-3xl bg-black/5 border border-black/10 shadow-2xl overflow-hidden">
-                    <div class="absolute -top-20 -right-20 w-40 h-40 bg-white/40 blur-3xl rounded-full"></div>
-                    <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-black/10 blur-3xl rounded-full"></div>
-                    <p class="text-sm md:text-lg text-black/50 font-bold uppercase tracking-[0.3em] text-center mb-6">
-                        Vanguard Means
-                    </p>
-                    <div class="h-12 md:h-20 w-full"></div>
-                </div>
-            </div>
-
-            <!-- Scene 5: The Sticky Anchor -->
-            <div id="anchor" class="anim-element absolute z-30 pointer-events-none flex items-center justify-center opacity-0 text-black">
-                <h3 class="text-4xl md:text-6xl font-serif italic tracking-tighter whitespace-nowrap">
-                    "something ahead of its time"
-                </h3>
-            </div>
-
-            <!-- Scene 6: The Pivot -->
-            <div id="problem" class="anim-element absolute z-20 max-w-4xl px-6 text-center opacity-0 translate-y-10">
-                <h2 class="text-4xl md:text-7xl font-black tracking-tighter text-white uppercase leading-[1.1]">
-                    What problems<br />
-                    <span class="text-white/40">does it really solve?</span>
-                </h2>
-            </div>
-
-        </div>
+    <!-- The Monolithic Question Mark -->
+    <div class="layer" id="l-question">
+      <div id="massive-q">?</div>
     </div>
 
-    <!-- The Custom Scroll Animation Engine -->
-    <script>
-        // Helper function: mimics Framer Motion's useTransform
-        function interpolate(x, input, output) {
-            if (x <= input[0]) return output[0];
-            if (x >= input[input.length - 1]) return output[output.length - 1];
-            for (let i = 1; i < input.length; i++) {
-                if (x <= input[i]) {
-                    const ratio = (x - input[i - 1]) / (input[i] - input[i - 1]);
-                    return output[i - 1] + ratio * (output[i] - output[i - 1]);
-                }
-            }
-            return output[output.length - 1];
-        }
+    <div class="layer" id="l-title">
+      <h1 id="vorenth-main">
+        <span class="letter">V</span><span class="letter">O</span><span class="letter">R</span><span class="letter">E</span><span class="letter">N</span><span class="letter">T</span><span class="letter">H</span>
+      </h1>
+    </div>
 
-        // Grab elements
-        const container = document.getElementById('sticky-container');
-        const vorenthText = document.getElementById('vorenth-text');
-        const questionMark = document.getElementById('question-mark');
-        const acronym = document.getElementById('acronym');
-        const bubble = document.getElementById('bubble');
-        const anchor = document.getElementById('anchor');
-        const problem = document.getElementById('problem');
+    <div class="layer" id="l-acronym">
+      <div class="acronym-wrap">
+        <span class="acronym-word"><span class="acronym-highlight">V</span>anguard</span>
+        <span class="acronym-word"><span class="acronym-highlight">O</span>rchestrated</span><br class="hidden md:block"/>
+        <span class="acronym-word"><span class="acronym-highlight">R</span>esource</span>
+        <span class="acronym-word"><span class="acronym-highlight">E</span>ngine</span>
+        <span class="acronym-word">for</span><br class="hidden md:block"/>
+        <span class="acronym-word"><span class="acronym-highlight">N</span>etwork</span>
+        <span class="acronym-word"><span class="acronym-highlight">T</span>racking</span>
+        <span class="acronym-word">&amp;</span>
+        <span class="acronym-word"><span class="acronym-highlight">H</span>armony</span>
+      </div>
+    </div>
 
-        // The Scroll Listener
-        window.addEventListener('scroll', () => {
-            // Calculate scroll percentage (0.0 to 1.0)
-            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
-            const p = Math.min(Math.max(window.scrollY / scrollMax, 0), 1);
+    <div class="layer" id="l-bubble">
+      <div id="bubble-card">
+        <span class="bubble-label">System Query</span>
+        <div class="bubble-meaning" id="bubble-text"></div>
+      </div>
+    </div>
 
-            // 1. Background Color Inversion
-            if (p > 0.1 && p < 0.65) {
-                container.style.backgroundColor = '#FFFFFF';
-            } else {
-                container.style.backgroundColor = '#000000';
-            }
+    <div class="layer" id="l-anchor">
+      <p id="anchor-text">"something ahead of its time"</p>
+    </div>
 
-            // 2. VORENTH Text
-            const vOpacity = interpolate(p, [0, 0.25, 0.3], [1, 1, 0]);
-            const vScale = interpolate(p, [0, 0.2], [1, 1.1]);
-            vorenthText.style.opacity = vOpacity;
-            vorenthText.style.transform = `scale(${vScale})`;
-            vorenthText.style.color = (p > 0.1 && p < 0.15) ? '#000000' : (p <= 0.1 ? '#FFFFFF' : '#000000');
+    <div class="layer" id="l-problem">
+      <div class="problem-inner">
+        <span id="problem-line1">WHAT PROBLEM</span>
+        <span id="problem-line2">does it actually solve?</span>
+      </div>
+    </div>
 
-            // 3. Question Mark
-            const qOpacity = interpolate(p, [0.1, 0.15, 0.25, 0.3], [0, 0.08, 0.08, 0]);
-            const qScale = interpolate(p, [0.1, 0.3], [0.5, 1.5]);
-            questionMark.style.opacity = qOpacity;
-            questionMark.style.transform = `scale(${qScale})`;
+    <div id="scroll-hint">
+      <span>Initiate</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </div>
+</div>
 
-            // 4. The Acronym
-            const aOpacity = interpolate(p, [0.3, 0.35, 0.45, 0.5], [0, 1, 1, 0]);
-            const aY = interpolate(p, [0.3, 0.35, 0.45, 0.5], [50, 0, 0, -50]);
-            acronym.style.opacity = aOpacity;
-            acronym.style.transform = `translateY(${aY}px)`;
+<script>
+  // --- UTILS ---
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const easeInOut = t => t < 0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+  function remap(x, x0, x1, y0, y1, ease) {
+    const t = clamp((x - x0) / (x1 - x0), 0, 1);
+    return lerp(y0, y1, ease ? ease(t) : t);
+  }
 
-            // 5. The Glass Bubble
-            const bOpacity = interpolate(p, [0.5, 0.55, 0.65, 0.7], [0, 1, 1, 0]);
-            const bY = interpolate(p, [0.5, 0.55], [40, 0]);
-            bubble.style.opacity = bOpacity;
-            bubble.style.transform = `translateY(${bY}px)`;
+  // --- INIT LENIS (Smooth Scroll Engine) ---
+  const lenis = new Lenis({
+    duration: 1.5, // Heavy, cinematic inertia
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+    smooth: true,
+  });
 
-            // 6. The Sticky Anchor ("ahead of its time")
-            const anOpacity = interpolate(p, [0.5, 0.55], [0, 1]);
-            const anY = interpolate(p, [0.7, 0.8], [0, -38]); // vh equivalent
-            const anScale = interpolate(p, [0.7, 0.8], [1, 0.4]);
-            anchor.style.opacity = anOpacity;
-            anchor.style.transform = `translateY(${anY}vh) scale(${anScale})`;
-            anchor.style.color = p >= 0.65 ? '#FFFFFF' : '#000000';
+  // --- DOM ELEMENTS ---
+  const stage = document.getElementById('stage');
+  const lTitle = document.getElementById('l-title');
+  const lQuestion = document.getElementById('l-question');
+  const massiveQ = document.getElementById('massive-q');
+  const lAcronym = document.getElementById('l-acronym');
+  const lBubble = document.getElementById('l-bubble');
+  const lAnchor = document.getElementById('l-anchor');
+  const lProblem = document.getElementById('l-problem');
+  const vorenthMain = document.getElementById('vorenth-main');
+  const letters = document.querySelectorAll('.letter');
+  const acronymWords = document.querySelectorAll('.acronym-word');
+  const bubbleText = document.getElementById('bubble-text');
+  const anchorText = document.getElementById('anchor-text');
+  const scrollHint = document.getElementById('scroll-hint');
 
-            // 7. The Problem Pivot
-            const pOpacity = interpolate(p, [0.8, 0.85], [0, 1]);
-            const pY = interpolate(p, [0.8, 0.85], [40, 0]);
-            problem.style.opacity = pOpacity;
-            problem.style.transform = `translateY(${pY}px)`;
-        });
-    </script>
+  // --- CANVAS PARTICLES ---
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+      size: Math.random() * 1.5 + 0.5, opacity: Math.random() * 0.5 + 0.1
+    });
+  }
+
+  // --- RENDER LOOP (Unified Lenis + Canvas + State) ---
+  let targetBg = [0,0,0]; let currBg = [0,0,0];
+  let bubbleTyped = false;
+  const BUBBLE_TEXT = 'Vanguard means "something ahead of its time."';
+
+  function typeBubble() {
+    if (bubbleTyped) return;
+    bubbleTyped = true;
+    bubbleText.textContent = '';
+    let i = 0;
+    const iv = setInterval(() => {
+      bubbleText.textContent += BUBBLE_TEXT[i];
+      i++;
+      if (i >= BUBBLE_TEXT.length) clearInterval(iv);
+    }, 40); // Hacker typewriter speed
+  }
+
+  lenis.on('scroll', ({ progress }) => {
+    const p = progress; // 0.0 to 1.0
+
+    // Fade out hint immediately
+    scrollHint.style.opacity = p < 0.02 ? '1' : '0';
+
+    // 1. BACKGROUND COLOR (The Inversion)
+    if (p > 0.15 && p < 0.65) {
+      targetBg = [255, 255, 255]; // White
+      vorenthMain.style.color = '#000000';
+    } else {
+      targetBg = [0, 0, 0]; // Black
+      vorenthMain.style.color = '#FFFFFF';
+    }
+
+    // 2. SCENE: VORENTH & QUESTION MARK
+    // VORENTH Title fades out between 0.3 and 0.35
+    const titleOp = remap(p, 0, 0.05, 0, 1, easeOut) * remap(p, 0.3, 0.35, 1, 0, easeOut);
+    const titleScale = remap(p, 0, 0.3, 1, 1.15, easeOut);
+    lTitle.style.opacity = titleOp;
+    lTitle.style.transform = `scale(${titleScale})`;
+
+    // Question Mark fades IN during the white transition (0.15), fades OUT with VORENTH (0.35)
+    const qOp = remap(p, 0.15, 0.2, 0, 1, easeOut) * remap(p, 0.3, 0.35, 1, 0, easeOut);
+    const qScale = remap(p, 0.1, 0.35, 0.8, 1.2, easeOut);
+    lQuestion.style.opacity = qOp;
+    massiveQ.style.transform = `scale(${qScale})`;
+
+    // 3. SCENE: ACRONYM
+    const aOp = remap(p, 0.35, 0.4, 0, 1, easeOut) * remap(p, 0.5, 0.55, 1, 0, easeOut);
+    lAcronym.style.opacity = aOp;
+    if (aOp > 0.01) {
+      acronymWords.forEach((w, i) => {
+        // Staggered reveal
+        const wt = remap(p, 0.35 + (i * 0.005), 0.4 + (i * 0.005), 0, 1, easeOut);
+        w.style.opacity = wt;
+        w.style.transform = `translateY(${lerp(40, 0, wt)}px)`;
+      });
+    }
+
+    // 4. SCENE: GLASS BUBBLE
+    const bOp = remap(p, 0.55, 0.6, 0, 1, easeOut) * remap(p, 0.7, 0.75, 1, 0, easeOut);
+    const bY = remap(p, 0.55, 0.6, 60, 0, easeOut);
+    lBubble.style.opacity = bOp;
+    lBubble.style.transform = `translateY(${bY}px)`;
+    if (p > 0.55) typeBubble();
+
+    // 5. SCENE: THE STICKY ANCHOR ("ahead of its time")
+    // Fades in *with* the bubble, but survives the blackout
+    const anOp = remap(p, 0.58, 0.62, 0, 1, easeOut);
+    // Scales down and moves to the top edge when the pivot happens
+    const anScale = remap(p, 0.75, 0.82, 1, 0.45, easeInOut);
+    const anY = remap(p, 0.75, 0.82, 0, -38, easeInOut); // Moves up -38vh
+    
+    lAnchor.style.opacity = anOp;
+    lAnchor.style.transform = `translateY(${anY}vh) scale(${anScale})`;
+    // Adjust text color based on background inversion
+    anchorText.style.color = (p > 0.15 && p < 0.65) ? '#000000' : '#FFFFFF';
+
+    // 6. SCENE: THE PROBLEM PIVOT
+    const pOp = remap(p, 0.82, 0.88, 0, 1, easeOut);
+    const pY = remap(p, 0.82, 0.88, 60, 0, easeOut);
+    lProblem.style.opacity = pOp;
+    lProblem.style.transform = `translateY(${pY}px)`;
+  });
+
+  // Unified RAF (Request Animation Frame)
+  function raf(time) {
+    lenis.raf(time);
+
+    // Particle Physics & BG Color Lerp
+    currBg[0] = lerp(currBg[0], targetBg[0], 0.05);
+    currBg[1] = lerp(currBg[1], targetBg[1], 0.05);
+    currBg[2] = lerp(currBg[2], targetBg[2], 0.05);
+    stage.style.backgroundColor = `rgb(${currBg[0]|0},${currBg[1]|0},${currBg[2]|0})`;
+
+    const lightTheme = currBg[0] > 128;
+    canvas.style.opacity = lightTheme ? '0.4' : '1';
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = lightTheme ? `rgba(0,0,0,${p.opacity})` : `rgba(255,255,255,${p.opacity})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // Magnetic hover effect on VORENTH letters
+  document.addEventListener('mousemove', e => {
+    letters.forEach(l => {
+      const rect = l.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2; const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx; const dy = e.clientY - cy;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const mag = clamp(1 - dist / 250, 0, 1);
+      l.style.transition = 'transform 0.15s cubic-bezier(0.2,1,0.3,1)';
+      l.style.transform = `translate(${dx * mag * 0.15}px, ${dy * mag * 0.15}px)`;
+    });
+  });
+
+  // Entrance animation
+  setTimeout(() => { lTitle.style.opacity = '1'; }, 300);
+</script>
 </body>
 </html>
