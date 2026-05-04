@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vorenth Pitch</title>
+    <!-- Tailwind CSS via CDN for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth out the JS animations */
+        .anim-element {
+            will-change: transform, opacity, background-color;
+        }
+        /* Custom font import for that premium feel */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&display=swap');
+        .font-serif { font-family: 'Playfair Display', serif; }
+    </style>
+</head>
+<body class="bg-black m-0 p-0 overflow-x-hidden">
+
+    <!-- The 700vh container gives us the "track" to scroll down -->
+    <div style="height: 700vh; position: relative;">
+        
+        <!-- The Sticky Window: Stays locked to the screen while we scroll -->
+        <div id="sticky-container" class="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden transition-colors duration-[50ms] bg-black">
+            
+            <!-- Scene 1 & 2: Background Question Mark -->
+            <div id="question-mark" class="anim-element absolute text-[40rem] font-black text-black blur-md z-0 select-none opacity-0 scale-50">
+                ?
+            </div>
+            
+            <!-- Scene 1 & 2: VORENTH -->
+            <h1 id="vorenth-text" class="anim-element absolute text-7xl md:text-9xl font-black tracking-tighter uppercase z-10 text-white">
+                VORENTH
+            </h1>
+
+            <!-- Scene 3: The Acronym -->
+            <div id="acronym" class="anim-element absolute max-w-6xl px-6 text-center z-20 opacity-0 translate-y-12">
+                <h2 class="text-4xl md:text-6xl font-bold tracking-tight text-black leading-tight">
+                    VANGUARD ORCHESTRATED RESOURCE ENGINE FOR NETWORK TRACKING AND HARMONY
+                </h2>
+            </div>
+
+            <!-- Scene 4: The Glass Bubble -->
+            <div id="bubble" class="anim-element absolute z-20 flex flex-col items-center justify-center w-full max-w-3xl px-6 opacity-0 translate-y-10">
+                <div class="w-full relative rounded-3xl p-10 md:p-16 backdrop-blur-3xl bg-black/5 border border-black/10 shadow-2xl overflow-hidden">
+                    <div class="absolute -top-20 -right-20 w-40 h-40 bg-white/40 blur-3xl rounded-full"></div>
+                    <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-black/10 blur-3xl rounded-full"></div>
+                    <p class="text-sm md:text-lg text-black/50 font-bold uppercase tracking-[0.3em] text-center mb-6">
+                        Vanguard Means
+                    </p>
+                    <div class="h-12 md:h-20 w-full"></div>
+                </div>
+            </div>
+
+            <!-- Scene 5: The Sticky Anchor -->
+            <div id="anchor" class="anim-element absolute z-30 pointer-events-none flex items-center justify-center opacity-0 text-black">
+                <h3 class="text-4xl md:text-6xl font-serif italic tracking-tighter whitespace-nowrap">
+                    "something ahead of its time"
+                </h3>
+            </div>
+
+            <!-- Scene 6: The Pivot -->
+            <div id="problem" class="anim-element absolute z-20 max-w-4xl px-6 text-center opacity-0 translate-y-10">
+                <h2 class="text-4xl md:text-7xl font-black tracking-tighter text-white uppercase leading-[1.1]">
+                    What problems<br />
+                    <span class="text-white/40">does it really solve?</span>
+                </h2>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- The Custom Scroll Animation Engine -->
+    <script>
+        // Helper function: mimics Framer Motion's useTransform
+        function interpolate(x, input, output) {
+            if (x <= input[0]) return output[0];
+            if (x >= input[input.length - 1]) return output[output.length - 1];
+            for (let i = 1; i < input.length; i++) {
+                if (x <= input[i]) {
+                    const ratio = (x - input[i - 1]) / (input[i] - input[i - 1]);
+                    return output[i - 1] + ratio * (output[i] - output[i - 1]);
+                }
+            }
+            return output[output.length - 1];
+        }
+
+        // Grab elements
+        const container = document.getElementById('sticky-container');
+        const vorenthText = document.getElementById('vorenth-text');
+        const questionMark = document.getElementById('question-mark');
+        const acronym = document.getElementById('acronym');
+        const bubble = document.getElementById('bubble');
+        const anchor = document.getElementById('anchor');
+        const problem = document.getElementById('problem');
+
+        // The Scroll Listener
+        window.addEventListener('scroll', () => {
+            // Calculate scroll percentage (0.0 to 1.0)
+            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
+            const p = Math.min(Math.max(window.scrollY / scrollMax, 0), 1);
+
+            // 1. Background Color Inversion
+            if (p > 0.1 && p < 0.65) {
+                container.style.backgroundColor = '#FFFFFF';
+            } else {
+                container.style.backgroundColor = '#000000';
+            }
+
+            // 2. VORENTH Text
+            const vOpacity = interpolate(p, [0, 0.25, 0.3], [1, 1, 0]);
+            const vScale = interpolate(p, [0, 0.2], [1, 1.1]);
+            vorenthText.style.opacity = vOpacity;
+            vorenthText.style.transform = `scale(${vScale})`;
+            vorenthText.style.color = (p > 0.1 && p < 0.15) ? '#000000' : (p <= 0.1 ? '#FFFFFF' : '#000000');
+
+            // 3. Question Mark
+            const qOpacity = interpolate(p, [0.1, 0.15, 0.25, 0.3], [0, 0.08, 0.08, 0]);
+            const qScale = interpolate(p, [0.1, 0.3], [0.5, 1.5]);
+            questionMark.style.opacity = qOpacity;
+            questionMark.style.transform = `scale(${qScale})`;
+
+            // 4. The Acronym
+            const aOpacity = interpolate(p, [0.3, 0.35, 0.45, 0.5], [0, 1, 1, 0]);
+            const aY = interpolate(p, [0.3, 0.35, 0.45, 0.5], [50, 0, 0, -50]);
+            acronym.style.opacity = aOpacity;
+            acronym.style.transform = `translateY(${aY}px)`;
+
+            // 5. The Glass Bubble
+            const bOpacity = interpolate(p, [0.5, 0.55, 0.65, 0.7], [0, 1, 1, 0]);
+            const bY = interpolate(p, [0.5, 0.55], [40, 0]);
+            bubble.style.opacity = bOpacity;
+            bubble.style.transform = `translateY(${bY}px)`;
+
+            // 6. The Sticky Anchor ("ahead of its time")
+            const anOpacity = interpolate(p, [0.5, 0.55], [0, 1]);
+            const anY = interpolate(p, [0.7, 0.8], [0, -38]); // vh equivalent
+            const anScale = interpolate(p, [0.7, 0.8], [1, 0.4]);
+            anchor.style.opacity = anOpacity;
+            anchor.style.transform = `translateY(${anY}vh) scale(${anScale})`;
+            anchor.style.color = p >= 0.65 ? '#FFFFFF' : '#000000';
+
+            // 7. The Problem Pivot
+            const pOpacity = interpolate(p, [0.8, 0.85], [0, 1]);
+            const pY = interpolate(p, [0.8, 0.85], [40, 0]);
+            problem.style.opacity = pOpacity;
+            problem.style.transform = `translateY(${pY}px)`;
+        });
+    </script>
+</body>
+</html>
